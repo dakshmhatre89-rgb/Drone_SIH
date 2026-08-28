@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project Lifeline — Next-Gen CSSR</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --black:#08090a;
+    --slate-900:#12161a;
+    --slate-850:#171c21;
+    --slate-800:#1d242a;
+    --slate-700:#2b343c;
+    --slate-600:#3c4750;
+    --white:#f4f5f4;
+    --grey-mute:#8b959c;
+    --amber:#ffbf00;
+    --amber-dim:#8a6a00;
+    --orange:#ff5a1f;
+    --cyan:#19d7e0;
+    --danger:#ff3b30;
+    --font-display:'Oswald', sans-serif;
+    --font-mono:'IBM Plex Mono', monospace;
+    --font-body:'Inter', sans-serif;
+    --edge: 2px;
+  }
+
+  *{ margin:0; padding:0; box-sizing:border-box; }
+
+  html{ scroll-behavior:smooth; background:var(--black); }
+
+  body{
+    background:var(--black);
+    color:var(--white);
+    font-family:var(--font-body);
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+
+  ::selection{ background:var(--amber); color:var(--black); }
+
+  a{ color:inherit; text-decoration:none; }
+
+  img,svg{ display:block; max-width:100%; }
+
+  :focus-visible{
+    outline: 2px solid var(--amber);
+    outline-offset: 3px;
+  }
+
+  .wrap{
+    max-width:1240px;
+    margin:0 auto;
+    padding:0 32px;
+  }
+
+  .eyebrow{
+    font-family:var(--font-mono);
+    font-size:12.5px;
+    letter-spacing:0.22em;
+    text-transform:uppercase;
+    color:var(--amber);
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .eyebrow::before{
+    content:"";
+    width:22px; height:1px;
+    background:var(--amber);
+    display:inline-block;
+  }
+
+  h1,h2,h3,h4{
+    font-family:var(--font-display);
+    text-transform:uppercase;
+    font-weight:600;
+    letter-spacing:0.01em;
+    line-height:1.05;
+  }
+
+  /* ---------- background texture ---------- */
+  .grid-bg{
+    position:absolute; inset:0;
+    background-image:
+      linear-gradient(var(--slate-700) 1px, transparent 1px),
+      linear-gradient(90deg, var(--slate-700) 1px, transparent 1px);
+    background-size: 42px 42px;
+    opacity:0.16;
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 20%, black 40%, transparent 90%);
+    pointer-events:none;
+  }
+
+  /* ---------- nav ---------- */
+  header.nav{
+    position:fixed; top:0; left:0; right:0; z-index:100;
+    background:rgba(8,9,10,0.85);
+    backdrop-filter: blur(10px);
+    border-bottom:1px solid var(--slate-700);
+  }
+  .nav-inner{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:16px 32px;
+    max-width:1240px; margin:0 auto;
+  }
+  .logo{
+    font-family:var(--font-display);
+    font-size:19px;
+    letter-spacing:0.03em;
+    text-transform:uppercase;
+    display:flex; align-items:center; gap:10px;
+  }
+  .logo .dot{
+    width:9px; height:9px; border-radius:50%;
+    background:var(--amber);
+    box-shadow:0 0 10px var(--amber);
+    animation: pulse-dot 1.8s ease-in-out infinite;
+  }
+  .logo small{
+    font-family:var(--font-mono);
+    font-size:10px; color:var(--grey-mute);
+    letter-spacing:0.12em; display:block; text-transform:none;
+  }
+  nav.links{ display:flex; gap:34px; }
+  nav.links a{
+    font-family:var(--font-mono);
+    font-size:12px; letter-spacing:0.08em; text-transform:uppercase;
+    color:var(--grey-mute);
+    transition:color .2s ease;
+    position:relative;
+  }
+  nav.links a:hover{ color:var(--white); }
+  .nav-cta{
+    font-family:var(--font-mono);
+    font-size:12px; letter-spacing:0.08em; text-transform:uppercase;
+    border:1px solid var(--amber); color:var(--amber);
+    padding:9px 16px;
+    transition: all .2s ease;
+  }
+  .nav-cta:hover{ background:var(--amber); color:var(--black); }
+  .nav-toggle{ display:none; background:none; border:none; color:var(--white); cursor:pointer; }
+
+  /* ---------- buttons ---------- */
+  .btn-row{ display:flex; gap:16px; flex-wrap:wrap; }
+  .btn{
+    font-family:var(--font-mono);
+    font-size:13px; letter-spacing:0.06em; text-transform:uppercase;
+    padding:16px 26px;
+    display:inline-flex; align-items:center; gap:10px;
+    border:1px solid transparent;
+    cursor:pointer;
+    transition: transform .15s ease, box-shadow .2s ease, background .2s ease;
+  }
+  .btn-primary{
+    background:var(--amber); color:var(--black); font-weight:600;
+    clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  }
+  .btn-primary:hover{ transform:translateY(-2px); box-shadow:0 10px 26px -10px rgba(255,191,0,0.55); }
+  .btn-primary svg{ width:15px; height:15px; }
+  .btn-ghost{
+    border-color:var(--slate-600); color:var(--white);
+  }
+  .btn-ghost:hover{ border-color:var(--white); }
+
+  /* ---------- hero ---------- */
+  .hero{
+    position:relative;
+    padding:168px 0 100px;
+    overflow:hidden;
+    border-bottom:1px solid var(--slate-700);
+  }
+  .hero-grid{
+    display:grid;
+    grid-template-columns: 1.05fr 0.95fr;
+    gap:64px;
+    align-items:center;
+    position:relative; z-index:2;
+  }
+  .hero h1{
+    font-size:clamp(34px, 4.6vw, 58px);
+    margin:20px 0 22px;
+    color:var(--white);
+  }
+  .hero h1 .hl{ color:var(--amber); }
+  .hero p.sub{
+    font-size:17px;
+    color:var(--grey-mute);
+    max-width:52ch;
+    margin-bottom:34px;
+  }
+  .hero-stats{
+    display:flex; gap:34px; margin-top:44px;
+    font-family:var(--font-mono);
+    flex-wrap:wrap;
+  }
+  .hero-stats div span.n{
+    display:block; font-size:26px; color:var(--amber); font-weight:600;
+  }
+  .hero-stats div span.l{
+    display:block; font-size:11px; color:var(--grey-mute); letter-spacing:0.08em; text-transform:uppercase; margin-top:4px;
+  }
+
+  /* radar / drone visual panel */
+  .scope{
+    position:relative;
+    aspect-ratio: 4/3.1;
+    background: radial-gradient(circle at 50% 50%, var(--slate-850) 0%, var(--black) 78%);
+    border:1px solid var(--slate-700);
+    overflow:hidden;
+  }
+  .scope::before, .scope::after{
+    content:""; position:absolute; border-radius:50%;
+    border:1px solid rgba(255,191,0,0.16);
+  }
+  .scope-rings{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; }
+  .ring{
+    position:absolute; border-radius:50%; border:1px solid rgba(255,191,0,0.18);
+  }
+  .ring.r1{ width:30%; height:30%; }
+  .ring.r2{ width:58%; height:58%; }
+  .ring.r3{ width:86%; height:86%; }
+  .sweep{
+    position:absolute; width:50%; height:50%; top:0; left:50%;
+    transform-origin: 0% 100%;
+    background: conic-gradient(from 0deg, rgba(255,191,0,0.5), transparent 32%);
+    animation: sweep 4.2s linear infinite;
+  }
+  .blip{
+    position:absolute; width:7px; height:7px; border-radius:50%;
+    background:var(--orange); box-shadow:0 0 12px var(--orange);
+    animation: blip-fade 4.2s ease-in-out infinite;
+    z-index:3;
+  }
+  .ping{
+    position:absolute; width:7px; height:7px; border-radius:50%;
+    border:1px solid var(--orange);
+    animation: ping-out 4.2s ease-in-out infinite;
+    z-index:2;
+  }
+  .detect{
+    position:absolute; z-index:4;
+    display:flex; align-items:center; gap:8px;
+    animation: blip-fade 4.2s ease-in-out infinite;
+    pointer-events:none;
+  }
+  .detect.left{ flex-direction:row-reverse; }
+  .detect-line{
+    width:22px; height:1px; background:linear-gradient(90deg, var(--orange), transparent);
+  }
+  .detect.left .detect-line{ background:linear-gradient(270deg, var(--orange), transparent); }
+  .thermal-thumb{
+    width:44px; height:44px; border:1px solid var(--orange);
+    background:radial-gradient(circle at 50% 38%, #fff2c2 0%, var(--amber) 22%, var(--orange) 48%, #7a1c00 78%, #1a0700 100%);
+    box-shadow:0 0 14px rgba(255,90,31,0.45);
+    flex-shrink:0;
+    overflow:hidden;
+  }
+  .detect-info{
+    font-family:var(--font-mono); font-size:9px; letter-spacing:0.03em; line-height:1.5;
+    background:rgba(8,9,10,0.72); border:1px solid var(--slate-700);
+    padding:4px 7px; white-space:nowrap;
+  }
+  .detect-info .dstatus{ color:var(--orange); display:block; letter-spacing:0.08em; }
+  .detect-info .dgps{ color:var(--cyan); display:block; }
+  .scope-frame{
+    position:absolute; inset:14px;
+    border:1px solid var(--slate-700);
+    pointer-events:none;
+  }
+  .scope-readout{
+    position:absolute; left:18px; bottom:16px; right:18px;
+    display:flex; justify-content:space-between; align-items:flex-end;
+    font-family:var(--font-mono); font-size:10.5px; color:var(--cyan);
+    letter-spacing:0.04em;
+  }
+  .scope-readout .stat{ text-align:left; }
+  .scope-readout .stat b{ display:block; color:var(--white); font-size:14px; }
+  .scope-tag{
+    position:absolute; top:16px; left:18px;
+    font-family:var(--font-mono); font-size:10.5px; letter-spacing:0.12em;
+    color:var(--amber); text-transform:uppercase;
+    display:flex; align-items:center; gap:8px;
+  }
+  .scope-tag::before{
+    content:""; width:6px; height:6px; background:var(--amber); border-radius:50%;
+    animation: pulse-dot 1.8s ease-in-out infinite;
+  }
+  .scope-caption{
+    font-family:var(--font-mono); font-size:11px; color:var(--grey-mute);
+    text-align:center; margin-top:14px; letter-spacing:0.04em;
+  }
+
+  @keyframes sweep{ from{ transform:rotate(0deg); } to{ transform:rotate(360deg); } }
+  @keyframes pulse-dot{ 0%,100%{ opacity:1; } 50%{ opacity:0.25; } }
+  @keyframes blip-fade{ 0%,100%{ opacity:0; } 45%,55%{ opacity:1; } }
+  @keyframes ping-out{
+    0%{ transform:scale(1); opacity:0; }
+    40%{ transform:scale(1); opacity:0; }
+    50%{ opacity:0.7; }
+    75%{ transform:scale(5.5); opacity:0; }
+    100%{ transform:scale(5.5); opacity:0; }
+  }
+
+  /* ---------- section shell ---------- */
+  section{ position:relative; padding:110px 0; }
+  .section-head{ max-width:640px; margin-bottom:60px; }
+  .section-head h2{
+    font-size:clamp(28px, 3.4vw, 42px);
+    margin-top:16px;
+    color:var(--white);
+  }
+  .section-head p{ color:var(--grey-mute); margin-top:16px; font-size:16px; }
+
+  .hazard-rule{
+    height:6px;
+    background: repeating-linear-gradient(-45deg, var(--amber) 0 14px, var(--slate-800) 14px 28px);
+    opacity:0.9;
+  }
+
+  /* ---------- timeline section ---------- */
+  .timeline{ background:var(--slate-900); border-bottom:1px solid var(--slate-700); }
+  .tl-split{
+    display:grid; grid-template-columns:1fr 1fr; gap:0;
+    border:1px solid var(--slate-700);
+  }
+  .tl-col{ padding:40px; }
+  .tl-col.problem{ border-right:1px solid var(--slate-700); background:var(--slate-850); }
+  .tl-col.solution{ background:linear-gradient(180deg, rgba(255,191,0,0.045), transparent 60%); }
+  .tl-col .tag{
+    font-family:var(--font-mono); font-size:11.5px; letter-spacing:0.12em; text-transform:uppercase;
+  }
+  .tl-col.problem .tag{ color:var(--grey-mute); }
+  .tl-col.solution .tag{ color:var(--amber); }
+  .tl-col h3{ font-size:24px; margin:14px 0 16px; color:var(--white); }
+  .tl-col p{ color:var(--grey-mute); font-size:15px; margin-bottom:18px; }
+  .tl-metric{
+    display:flex; align-items:baseline; gap:10px; margin-top:22px;
+    font-family:var(--font-mono);
+  }
+  .tl-metric b{ font-size:34px; color:var(--white); }
+  .tl-col.solution .tl-metric b{ color:var(--amber); }
+  .tl-metric span{ font-size:11.5px; color:var(--grey-mute); text-transform:uppercase; letter-spacing:0.06em; }
+
+  /* survival chart */
+  .chart-panel{
+    margin-top:40px; border:1px solid var(--slate-700); background:var(--slate-850);
+    padding:32px 32px 20px;
+  }
+  .chart-panel-head{
+    display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:12px;
+    margin-bottom:8px;
+  }
+  .chart-panel-head h4{
+    font-size:16px; color:var(--white); letter-spacing:0.02em;
+  }
+  .chart-panel-head span{
+    font-family:var(--font-mono); font-size:11px; color:var(--grey-mute); letter-spacing:0.05em;
+  }
+  .chart-legend{ display:flex; gap:22px; font-family:var(--font-mono); font-size:11px; color:var(--grey-mute); margin-top:10px; }
+  .chart-legend .sw{ display:inline-block; width:10px; height:10px; margin-right:6px; vertical-align:-1px; }
+
+  /* ---------- tech pillars ---------- */
+  .pillars-grid{
+    display:grid; grid-template-columns:repeat(3, 1fr); gap:1px;
+    background:var(--slate-700);
+    border:1px solid var(--slate-700);
+  }
+  .pcard{
+    background:var(--black);
+    padding:32px 28px;
+    transition: background .25s ease, transform .25s ease;
+    position:relative;
+  }
+  .pcard:hover{ background:var(--slate-900); transform:translateY(-3px); z-index:2; }
+  .pcard .picon{
+    width:40px; height:40px; color:var(--amber);
+    margin-bottom:20px;
+  }
+  .pcard:hover .picon{ color:var(--orange); }
+  .pcard h4{
+    font-size:16px; text-transform:none; letter-spacing:0.01em;
+    color:var(--white); margin-bottom:10px; font-family:var(--font-body); font-weight:700;
+  }
+  .pcard p{ font-size:13.6px; color:var(--grey-mute); }
+  .pcard .idx{
+    position:absolute; top:28px; right:28px;
+    font-family:var(--font-mono); font-size:11px; color:var(--slate-600);
+  }
+
+  /* ---------- advantage ---------- */
+  .advantage{ background:var(--slate-900); border-top:1px solid var(--slate-700); border-bottom:1px solid var(--slate-700); }
+  .adv-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--slate-700); border:1px solid var(--slate-700); }
+  .adv-card{ background:var(--slate-900); padding:44px 34px; }
+  .adv-num{
+    font-family:var(--font-display); font-size:56px; color:transparent;
+    -webkit-text-stroke: 1.5px var(--amber);
+    line-height:1;
+    margin-bottom:22px;
+  }
+  .adv-card h4{ font-size:19px; color:var(--white); margin-bottom:12px; letter-spacing:0.01em; }
+  .adv-card p{ font-size:14.5px; color:var(--grey-mute); }
+
+  /* ---------- CTA band ---------- */
+  .cta-band{
+    text-align:center; padding:100px 0;
+    background: linear-gradient(180deg, transparent, rgba(255,191,0,0.05));
+  }
+  .cta-band h2{ font-size:clamp(26px,3.6vw,40px); margin:16px 0 30px; }
+  .cta-band .btn-row{ justify-content:center; }
+
+  /* ---------- footer ---------- */
+  footer{ border-top:1px solid var(--slate-700); padding:48px 0 32px; background:var(--slate-900); }
+  .footer-top{
+    display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:24px;
+    margin-bottom:36px;
+  }
+  .footer-links{ display:flex; gap:32px; flex-wrap:wrap; }
+  .footer-links a{
+    font-family:var(--font-mono); font-size:12px; color:var(--grey-mute);
+    letter-spacing:0.05em; text-transform:uppercase;
+    transition:color .2s ease;
+  }
+  .footer-links a:hover{ color:var(--amber); }
+  .partner-tag{
+    font-family:var(--font-mono); font-size:11px; letter-spacing:0.06em; text-transform:uppercase;
+    border:1px solid var(--slate-600); color:var(--grey-mute); padding:8px 14px;
+  }
+  .footer-bottom{
+    padding-top:24px; border-top:1px solid var(--slate-800);
+    display:flex; justify-content:space-between; flex-wrap:wrap; gap:12px;
+    font-family:var(--font-mono); font-size:11.5px; color:var(--slate-600);
+    letter-spacing:0.04em;
+  }
+
+  /* ---------- video modal ---------- */
+  .video-modal{
+    position:fixed; inset:0; z-index:1000;
+    display:flex; align-items:center; justify-content:center;
+    padding:24px;
+    opacity:0; pointer-events:none;
+    transition: opacity .25s ease;
+  }
+  .video-modal.open{ opacity:1; pointer-events:auto; }
+  .video-modal-backdrop{
+    position:absolute; inset:0;
+    background:rgba(6,7,8,0.92);
+    backdrop-filter: blur(6px);
+  }
+  .video-modal-panel{
+    position:relative;
+    width:100%; max-width:960px;
+    border:1px solid var(--slate-700);
+    background:var(--slate-900);
+    transform:translateY(14px) scale(0.98);
+    transition: transform .28s ease;
+  }
+  .video-modal.open .video-modal-panel{ transform:translateY(0) scale(1); }
+  .video-modal-close{
+    position:absolute; top:-42px; right:0;
+    background:none; border:1px solid var(--slate-600); color:var(--white);
+    width:34px; height:34px;
+    font-family:var(--font-mono); font-size:15px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    transition: border-color .2s ease, color .2s ease;
+  }
+  .video-modal-close:hover{ border-color:var(--amber); color:var(--amber); }
+  .video-modal-frame{
+    position:relative; width:100%;
+    aspect-ratio:16/9;
+    background:var(--black);
+    border-top:2px solid var(--amber);
+  }
+  .video-modal-frame video,
+  .video-modal-frame iframe{
+    position:absolute; inset:0; width:100%; height:100%; border:0;
+  }
+  .video-modal-frame video{ object-fit:contain; background:#000; }
+  .video-modal-tag{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:10px 16px;
+    border-bottom:1px solid var(--slate-700);
+    font-family:var(--font-mono); font-size:11px; letter-spacing:0.08em; text-transform:uppercase;
+    color:var(--grey-mute);
+  }
+  .video-modal-tag span.live{ color:var(--amber); display:flex; align-items:center; gap:8px; }
+  .video-modal-tag span.live::before{
+    content:""; width:6px; height:6px; border-radius:50%; background:var(--amber);
+    animation: pulse-dot 1.8s ease-in-out infinite;
+  }
+
+  /* ---------- reveal ---------- */
+  .reveal{ opacity:0; transform:translateY(18px); transition:opacity .6s ease, transform .6s ease; }
+  .reveal.in{ opacity:1; transform:translateY(0); }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation:none !important; transition:none !important; }
+    .reveal{ opacity:1; transform:none; }
+  }
+
+  /* ---------- responsive ---------- */
+  @media (max-width: 980px){
+    .hero-grid{ grid-template-columns:1fr; }
+    .tl-split{ grid-template-columns:1fr; }
+    .tl-col.problem{ border-right:none; border-bottom:1px solid var(--slate-700); }
+    .pillars-grid{ grid-template-columns:repeat(2,1fr); }
+    .adv-grid{ grid-template-columns:1fr; }
+  }
+  @media (max-width: 640px){
+    .wrap{ padding:0 20px; }
+    nav.links, .nav-cta{ display:none; }
+    .nav-toggle{ display:block; }
+    .pillars-grid{ grid-template-columns:1fr; }
+    .hero{ padding:140px 0 70px; }
+    .hero-stats{ gap:22px; }
+    .thermal-thumb{ width:32px; height:32px; }
+    .thermal-thumb svg{ width:32px; height:32px; }
+    .detect-info{ font-size:8px; padding:3px 5px; }
+    .detect-line{ width:14px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="nav-inner">
+    <div class="logo">
+      <span class="dot"></span>
+      <div>
+        PROJECT LIFELINE
+        <small>NEXT-GEN CSSR</small>
+      </div>
+    </div>
+    <nav class="links">
+      <a href="#timeline">Golden 72</a>
+      <a href="#pillars">Tech Pillars</a>
+      <a href="#advantage">Advantage</a>
+      <a href="#footer-docs">Docs</a>
+    </nav>
+    <a class="nav-cta" href="#demo">Watch Demo</a>
+    <button class="nav-toggle" aria-label="Menu">☰</button>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="grid-bg"></div>
+  <div class="wrap hero-grid">
+    <div>
+      <div class="eyebrow">Collapsed Structure Search &amp; Rescue</div>
+      <h1>Shattering the <span class="hl">Golden 72 Hours</span>: AI-Powered Multimodal Life Detection Under Heavy Rubble</h1>
+      <p class="sub">Deploying autonomous edge-intelligence, sub-surface radar, and biochemical sniffing to pinpoint trapped survivors within minutes, not hours.</p>
+      <div class="btn-row">
+        <a href="#" class="btn btn-primary js-watch-demo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>
+          Watch System Demo
+        </a>
+        <a href="#footer-docs" class="btn btn-ghost">Read Technical Whitepaper</a>
+      </div>
+      <div class="hero-stats">
+        <div><span class="n">&lt;15%</span><span class="l">Survival past 72h</span></div>
+        <div><span class="n">3</span><span class="l">Fused sensor vectors</span></div>
+        <div><span class="n">0</span><span class="l">Cloud dependency</span></div>
+      </div>
+    </div>
+
+    <div id="demo">
+      <div class="scope">
+        <div class="scope-tag">Thermal Scan + GPS Lock — Sector 4</div>
+        <div class="scope-rings">
+          <div class="ring r1"></div>
+          <div class="ring r2"></div>
+          <div class="ring r3"></div>
+          <div class="sweep"></div>
+
+          <!-- Subject 01 -->
+          <div class="ping" style="top:34%; left:58%; animation-delay:0s;"></div>
+          <div class="blip" style="top:34%; left:58%; animation-delay:0s;"></div>
+          <div class="detect" style="top:26%; left:62%; animation-delay:0s;">
+            <div class="detect-line"></div>
+            <div class="thermal-thumb" aria-hidden="true">
+              <svg viewBox="0 0 44 44" width="44" height="44"><ellipse cx="22" cy="14" rx="6" ry="7" fill="#1a0700" opacity="0.55"/><path d="M22 22c-7 0-11 6-11 16h22c0-10-4-16-11-16Z" fill="#1a0700" opacity="0.5"/></svg>
+            </div>
+            <div class="detect-info">
+              <span class="dstatus">SUBJECT 01 — CONFIRMED</span>
+              <span class="dgps">34.0522°N 118.2437°W</span>
+            </div>
+          </div>
+
+          <!-- Subject 02 -->
+          <div class="ping" style="top:62%; left:40%; animation-delay:1.4s;"></div>
+          <div class="blip" style="top:62%; left:40%; animation-delay:1.4s;"></div>
+          <div class="detect left" style="top:70%; left:14%; animation-delay:1.4s;">
+            <div class="detect-line"></div>
+            <div class="thermal-thumb" aria-hidden="true">
+              <svg viewBox="0 0 44 44" width="44" height="44"><ellipse cx="22" cy="14" rx="6" ry="7" fill="#1a0700" opacity="0.55"/><path d="M22 22c-7 0-11 6-11 16h22c0-10-4-16-11-16Z" fill="#1a0700" opacity="0.5"/></svg>
+            </div>
+            <div class="detect-info">
+              <span class="dstatus">SUBJECT 02 — CONFIRMED</span>
+              <span class="dgps">34.0519°N 118.2440°W</span>
+            </div>
+          </div>
+
+          <!-- Subject 03 -->
+          <div class="ping" style="top:48%; left:70%; animation-delay:2.6s;"></div>
+          <div class="blip" style="top:48%; left:70%; animation-delay:2.6s;"></div>
+          <div class="detect" style="top:52%; left:74%; animation-delay:2.6s;">
+            <div class="detect-line"></div>
+            <div class="thermal-thumb" aria-hidden="true">
+              <svg viewBox="0 0 44 44" width="44" height="44"><ellipse cx="22" cy="14" rx="6" ry="7" fill="#1a0700" opacity="0.55"/><path d="M22 22c-7 0-11 6-11 16h22c0-10-4-16-11-16Z" fill="#1a0700" opacity="0.5"/></svg>
+            </div>
+            <div class="detect-info">
+              <span class="dstatus">SUBJECT 03 — WEAK SIGNAL</span>
+              <span class="dgps">34.0525°N 118.2433°W</span>
+            </div>
+          </div>
+        </div>
+        <div class="scope-frame"></div>
+        <div class="scope-readout">
+          <div class="stat"><b>72.4 bpm</b>HEARTBEAT</div>
+          <div class="stat"><b>3</b>GPS-LOCKED</div>
+          <div class="stat"><b>4.2m</b>DEPTH</div>
+        </div>
+      </div>
+      <p class="scope-caption">Thermal heat-signature detection with AI-reconstructed subject imaging &amp; live GPS coordinate lock, sector 4</p>
+    </div>
+  </div>
+</section>
+
+<section class="timeline" id="timeline">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="eyebrow">Time-Critical</div>
+      <h2>The Golden 72 Hours</h2>
+      <p>Every excavation hour spent guessing is an hour a survivor doesn't have. Here's the bottleneck we built Lifeline to remove.</p>
+    </div>
+
+    <div class="tl-split reveal">
+      <div class="tl-col problem">
+        <div class="tag">// The Problem</div>
+        <h3>The Search Bottleneck</h3>
+        <p>K9 units and manual acoustic listening remain the industry standard — and they're painfully slow. Clearing just a few square meters of collapsed structure can take hours of careful, methodical sweeps, while heavy machinery noise, dust, and unstable debris drown out the faint signs of life beneath.</p>
+        <p>Survival rates fall below 10–15% once the 72-hour mark passes. Every hour spent searching blind is excavation time a trapped survivor cannot spare.</p>
+        <div class="tl-metric"><b>6–8 hrs</b><span>Per grid sector, manual search</span></div>
+      </div>
+      <div class="tl-col solution">
+        <div class="tag">// The Solution</div>
+        <h3>Instant Shift</h3>
+        <p>Lifeline's automated sensor arrays scan the same footprint that took hours of blind searching and return a confirmed, cross-verified location in minutes — turning the search phase from the longest part of the operation into the shortest.</p>
+        <p>Rescue teams stop searching for survivors and start extracting them, redirecting every saved hour into the excavation itself.</p>
+        <div class="tl-metric"><b>&lt;10 min</b><span>Per grid sector, Lifeline array</span></div>
+      </div>
+    </div>
+
+    <div class="chart-panel reveal">
+      <div class="chart-panel-head">
+        <h4>Survival Probability vs. Time Trapped</h4>
+        <span>SOURCE: FIELD DATA MODEL</span>
+      </div>
+      <svg viewBox="0 0 760 260" width="100%" height="auto" role="img" aria-label="Chart showing survival probability declining from near 100% at hour zero to under 15% by hour 72, with Lifeline's detection window marked in the first hours.">
+        <!-- gridlines -->
+        <g stroke="#2b343c" stroke-width="1">
+          <line x1="60" y1="20" x2="60" y2="210"></line>
+          <line x1="60" y1="210" x2="730" y2="210"></line>
+          <line x1="60" y1="160" x2="730" y2="160" stroke-dasharray="2 6"></line>
+          <line x1="60" y1="110" x2="730" y2="110" stroke-dasharray="2 6"></line>
+          <line x1="60" y1="60" x2="730" y2="60" stroke-dasharray="2 6"></line>
+        </g>
+        <!-- y labels -->
+        <g font-family="IBM Plex Mono" font-size="10" fill="#8b959c">
+          <text x="18" y="214">0%</text>
+          <text x="10" y="164">33%</text>
+          <text x="10" y="114">66%</text>
+          <text x="4" y="64">100%</text>
+        </g>
+        <!-- x labels -->
+        <g font-family="IBM Plex Mono" font-size="10" fill="#8b959c">
+          <text x="52" y="228">0h</text>
+          <text x="196" y="228">24h</text>
+          <text x="340" y="228">48h</text>
+          <text x="484" y="228">72h</text>
+          <text x="640" y="228">96h+</text>
+        </g>
+        <!-- survival curve -->
+        <path d="M60,30 C160,32 220,55 300,95 C380,140 430,175 520,196 C580,204 650,208 730,209"
+              fill="none" stroke="#8b959c" stroke-width="2.5"/>
+        <!-- lifeline detection zone -->
+        <rect x="60" y="20" width="70" height="190" fill="#ffbf00" opacity="0.09"/>
+        <line x1="130" y1="20" x2="130" y2="210" stroke="#ffbf00" stroke-width="1.5" stroke-dasharray="4 4"/>
+        <text x="66" y="42" font-family="IBM Plex Mono" font-size="10.5" fill="#ffbf00">LIFELINE DETECTION WINDOW</text>
+        <text x="66" y="56" font-family="IBM Plex Mono" font-size="10.5" fill="#ffbf00">MINUTES, NOT HOURS</text>
+        <circle cx="130" cy="34" r="4" fill="#ffbf00"/>
+        <circle cx="520" cy="196" r="4" fill="#ff5a1f"/>
+        <text x="530" y="192" font-family="IBM Plex Mono" font-size="10.5" fill="#ff5a1f">&lt;15% SURVIVAL</text>
+      </svg>
+      <div class="chart-legend">
+        <span><span class="sw" style="background:#8b959c;"></span>Unassisted survival curve</span>
+        <span><span class="sw" style="background:#ffbf00;"></span>Lifeline intervention window</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="pillars">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="eyebrow">System Architecture</div>
+      <h2>Tech Pillars &amp; Features</h2>
+      <p>Ten integrated systems, one edge-deployed platform. Built to run in the rubble, not the cloud.</p>
+    </div>
+  </div>
+
+  <div class="wrap reveal">
+    <div class="pillars-grid">
+
+      <div class="pcard"><span class="idx">01</span>
+        <svg class="picon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"></circle><circle cx="12" cy="12" r="7" opacity="0.6"></circle><circle cx="12" cy="12" r="11" opacity="0.3"></circle></svg>
+        <h4>Multimodal Sensor Fusion</h4>
+        <p>Combines UWB radar, LWIR thermal imaging, and acoustic geophones to cross-verify human life signs from independent physical channels.</p>
+      </div>
+
+      <div class="pcard"><span class="idx">02</span>
+        <svg class="picon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 12h4l2 7 4-14 2 7h8"></path></svg>
+        <h4>AI-Driven Noise Filtering</h4>
+        <p>Deep-learning models strip out deafening heavy-machinery noise on-site to isolate faint human taps or gasps in real time.</p>
+      </div>
+
+      <div class="pcard"><span class="idx">03</span>
+        <svg class="picon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 12c1.5 0 1.5-4 3-4s1.5 8 3 8 1.5-8 3-8 1.5 4 3 4 1.5-2 3-2"></path></svg>
+        <h4>Micro-Doppler Vital Detection</h4>
+        <p>Tracks chest-cavity micro-movements through solid concrete to confirm heartbeats in unconscious, unresponsive victims.</p>
+      </div>
+
+      <div class="pcard"><span class="idx">04</span>
+        <svg class="picon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="9" width="16" height="9" rx="1.5"></rect><circle cx="8" cy="18" r="1.6"></circle><circle cx="16" cy="18" r="1.6"></circle><path d="M8 9V6a4 4 0 0 1 8 0v3"></path></svg>
+        <h4>Autonomous Void Exploration</h4>
+        <p>Compact tracked UGVs and micro-drones built to crawl through gaps where neither rescuers nor K9 units can fit.</p>
+      </div>
+
+      <div class="pcard"><span class="idx">05</span>
+        <svg class="picon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v6M12 21v-4M6 8l3 2M18 8l-3 2M6 16l3-2M18 16l-3-2"></path><circle cx="12" cy="12" r="2.4"></circle></svg>
+        <h4>Electronic Nose (Chemical Sensing)</h4>
+        <p>Gas sensors detect unique biomarkers — acetone, CO₂, and ammonia — released in human breath and sweat under duress.</p>
+      </div>
+
+      <div class="pcard"><span class="idx">06</span>
+        <svg class="picon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="5" cy="6" r="2"></circle><circle cx="19" cy="6" r="2"></circle><circle cx="12" cy="18" r="2"></circle><path d="M5 8v3M19 8v3M12 16v-3M7 11h10"></path></svg>
+        <h4>Robust Mesh Communications</h4>
+        <p>Sub-GHz ad-hoc mesh networking keeps data flowing through heavy concrete back to the command post, node to node.</p>
+      </div>
+
+      <div class="pcard"><span class="idx">07</span>
+        <svg class="picon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2 3 7v10l9 5 9-5V7l-9-5Z"></path><path d="M3 7l9 5 9-5M12 12v10"></path></svg>
+        <h4>Real-Time 3D SLAM Mapping</h4>
+        <p>Builds live 3D visual models of subterranean voids as robots move through them — no GPS signal required underground.</p>
+      </div>
+
+      <div class="pcard"><span class="idx">08</span>
+        <svg class="picon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="7" y="7" width="10" height="10" rx="1"></rect><path d="M9 3v2M15 3v2M9 19v2M15 19v2M3 9h2M3 15h2M19 9h2M19 15h2"></path></svg>
+        <h4>Edge Computing Architecture</h4>
+        <p>Runs lightweight inference directly on-site via edge AI hardware, eliminating cloud dependency entirely.</p>
+      </div>
+
+      <div class="pcard"><span class="idx">09</span>
+        <svg class="picon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3 4 6v6c0 5 3.6 8 8 9 4.4-1 8-4 8-9V6l-8-3Z"></path><path d="m9 12 2 2 4-4"></path></svg>
+        <h4>Rescuer Safety Prioritization</h4>
+        <p>Maps structural stability and toxic gas hazards before first responders ever set foot inside a void.</p>
+      </div>
+
+      <div class="pcard"><span class="idx">10</span>
+        <svg class="picon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 17h4l3-9 4 12 3-9h4"></path></svg>
+        <h4>High SWaP-C Optimization</h4>
+        <p>Engineered for low size, weight, power, and cost — fast to deploy for local fire departments worldwide.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section class="advantage" id="advantage">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="eyebrow">The Competitive Advantage</div>
+      <h2>Why Lifeline Wins</h2>
+      <p>Single-sensor tools guess. Lifeline confirms — and never wastes an excavation crew's hours on a false alarm.</p>
+    </div>
+
+    <div class="adv-grid reveal">
+      <div class="adv-card">
+        <div class="adv-num">01</div>
+        <h4>Tri-Factor Verification</h4>
+        <p>Unlike single-sensor tools, Lifeline won't flag a location unless at least two independent vectors — heat, heartbeat, and sound — match a human signature. No wasted excavation hours chasing false positives.</p>
+      </div>
+      <div class="adv-card">
+        <div class="adv-num">02</div>
+        <h4>Zero Infrastructure Reliance</h4>
+        <p>A self-contained, secure radio network with on-board hardware processing operates flawlessly even when every 4G and 5G tower nearby has been destroyed.</p>
+      </div>
+      <div class="adv-card">
+        <div class="adv-num">03</div>
+        <h4>Active Void Penetration</h4>
+        <p>Surface scanning arrays work alongside autonomous micro-bots that crawl directly into structural cracks, bringing sensors closer to the victim for unmatched signal clarity — not passive scanning from above.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="cta-band">
+  <div class="wrap reveal">
+    <div class="eyebrow" style="justify-content:center;">Deploy Lifeline</div>
+    <h2>Every Minute Returned Is Excavation Time Earned</h2>
+    <div class="btn-row">
+      <a href="#" class="btn btn-primary js-watch-demo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>
+        Watch System Demo
+      </a>
+      <a href="#footer-docs" class="btn btn-ghost">Read Technical Whitepaper</a>
+    </div>
+  </div>
+</section>
+
+<footer id="footer-docs">
+  <div class="wrap">
+    <div class="footer-top">
+      <div class="logo">
+        <span class="dot"></span>
+        <div>PROJECT LIFELINE<small>NEXT-GEN CSSR</small></div>
+      </div>
+      <div class="footer-links">
+        <a href="#">Documentation</a>
+        <a href="#">GitHub Repository</a>
+        <a href="#">Technical Whitepaper</a>
+        <a href="#">Contact Field Team</a>
+      </div>
+      <div class="partner-tag">In Partnership with Global First Responders</div>
+    </div>
+    <div class="footer-bottom">
+      <span>Project Lifeline Tech © 2026</span>
+      <span>Built for the field. Deployed for the 72 hours that matter.</span>
+    </div>
+  </div>
+</footer>
+
+<!-- =========================================================
+     VIDEO MODAL
+     To wire up your real demo video, do ONE of the following:
+
+     OPTION A — Self-hosted video file (recommended for a
+     downloaded/uploaded .mp4):
+       1. Put your video file next to this index.html, e.g. in
+          a folder called "assets/demo.mp4".
+       2. Change the <source src="..."> below to that path.
+       3. Optionally set a poster image: <video poster="assets/demo-poster.jpg" ...>
+
+     OPTION B — YouTube / Vimeo embed:
+       1. Delete the <video>...</video> block below.
+       2. Uncomment and use the <iframe> block instead, and
+          replace VIDEO_ID with your actual video ID.
+     ========================================================= -->
+<div class="video-modal" id="videoModal" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Project Lifeline system demo video">
+  <div class="video-modal-backdrop" data-close></div>
+  <div class="video-modal-panel">
+    <button class="video-modal-close" data-close aria-label="Close video">✕</button>
+    <div class="video-modal-tag">
+      <span class="live">System Demo — Live Feed Playback</span>
+      <span>Project Lifeline // CSSR</span>
+    </div>
+    <div class="video-modal-frame">
+      <video id="demoVideo" controls playsinline preload="none">
+        <source src="assets/demo.mp4" type="video/mp4">
+        Your browser doesn't support embedded video.
+      </video>
+
+      <!-- OPTION B: YouTube/Vimeo embed — swap in place of <video> above
+      <iframe
+        id="demoVideoFrame"
+        src="https://www.youtube.com/embed/VIDEO_ID?autoplay=0&rel=0"
+        title="Project Lifeline Demo"
+        allow="autoplay; encrypted-media; picture-in-picture"
+        allowfullscreen>
+      </iframe>
+      -->
+    </div>
+  </div>
+</div>
+
+<script>
+  // mobile nav toggle
+  document.querySelector('.nav-toggle')?.addEventListener('click', () => {
+    document.querySelector('nav.links').style.display =
+      document.querySelector('nav.links').style.display === 'flex' ? 'none' : 'flex';
+  });
+
+  // scroll reveal
+  const revealEls = document.querySelectorAll('.reveal');
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+    }, { threshold: 0.12 });
+    revealEls.forEach(el => io.observe(el));
+  } else {
+    revealEls.forEach(el => el.classList.add('in'));
+  }
+
+  // video modal
+  const videoModal = document.getElementById('videoModal');
+  const demoVideo = document.getElementById('demoVideo');
+  let lastFocused = null;
+
+  function openVideoModal(e){
+    e.preventDefault();
+    lastFocused = document.activeElement;
+    videoModal.classList.add('open');
+    videoModal.setAttribute('aria-hidden', 'false');
+    videoModal.querySelector('.video-modal-close').focus();
+    if (demoVideo) { demoVideo.currentTime = 0; demoVideo.play().catch(() => {}); }
+  }
+
+  function closeVideoModal(){
+    videoModal.classList.remove('open');
+    videoModal.setAttribute('aria-hidden', 'true');
+    if (demoVideo) demoVideo.pause();
+    if (lastFocused) lastFocused.focus();
+  }
+
+  document.querySelectorAll('.js-watch-demo').forEach(btn => {
+    btn.addEventListener('click', openVideoModal);
+  });
+  videoModal.querySelectorAll('[data-close]').forEach(el => {
+    el.addEventListener('click', closeVideoModal);
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && videoModal.classList.contains('open')) closeVideoModal();
+  });
+</script>
+
+</body>
+</html>
